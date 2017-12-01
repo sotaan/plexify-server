@@ -2,12 +2,22 @@ import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import config from '../../config/config';
+import passport from "passport";
 
-// sample user, used for authentication
-const user = {
-  username: 'react',
-  password: 'express'
-};
+
+const generateJWT = (user) => {
+  const today = new Date();
+  let exp = new Date(today);
+  exp.setDate(today.getDate() + 60);
+  exp = parseInt(exp.getTime() / 1000)
+
+  return jwt.sign({
+    username: user.username,
+    exp
+  }, config.jwtSecret);
+}
+
+const makeAuthError = (err) => new APIError(err, httpStatus.UNAUTHORIZED, true);
 
 /**
  * Returns jwt token if valid username and password is provided
@@ -16,21 +26,20 @@ const user = {
  * @param next
  * @returns {*}
  */
-function login(req, res, next) {
-  // Ideally you'll fetch this from the db
-  // Idea here was to show how jwt works with simplicity
-  if (req.body.username === user.username && req.body.password === user.password) {
-    const token = jwt.sign({
-      username: user.username
-    }, config.jwtSecret);
-    return res.json({
-      token,
-      username: user.username
-    });
-  }
+const login = (req, res, next) => {
+  passport.authenticate('local', { session: false }, function (err, user, info) {
+    if (err) { return next(makeAuthError(err)); }
 
-  const err = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
-  return next(err);
+    if (user) {
+      const token = generateJWT(user);
+      return res.json({
+        token,
+        username: user.username
+      });
+    } else {
+      return next(makeAuthError('Authentication error: ' + info));
+    }
+  })(req, res, next);
 }
 
 /**
@@ -39,7 +48,7 @@ function login(req, res, next) {
  * @param res
  * @returns {*}
  */
-function getRandomNumber(req, res) {
+const getRandomNumber = (req, res) => {
   // req.user is assigned by jwt middleware if valid token is provided
   return res.json({
     user: req.user,
@@ -47,4 +56,4 @@ function getRandomNumber(req, res) {
   });
 }
 
-export default { login, getRandomNumber };
+export default { login, getRandomNumber, generateJWT };

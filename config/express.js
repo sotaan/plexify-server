@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import compress from 'compression';
 import methodOverride from 'method-override';
+//import passport from "passport";
 import cors from 'cors';
 import httpStatus from 'http-status';
 import expressWinston from 'express-winston';
@@ -45,6 +46,12 @@ if (config.env === 'development') {
     colorStatus: true // Color the status code (default green, 3XX cyan, 4XX yellow, 5XX red).
   }));
 }
+
+// Initialize Passport and restore authentication state, if any, from the
+// session.
+// app.use(passport.initialize());
+// app.use(passport.session());
+require('./passport');
 
 // mount all routes on /api path
 app.use('/api', routes);

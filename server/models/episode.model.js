@@ -1,31 +1,19 @@
 import Promise from 'bluebird';
 import mongoose from 'mongoose';
-import crypto from 'crypto';
-import uniqueValidator from 'mongoose-unique-validator';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 
 /**
  * User Schema
  */
-const UserSchema = new mongoose.Schema({
-  username: {
+const EpisodeSchema = new mongoose.Schema({
+  title: {
     type: String,
-    required: true,
-    unique: true,
-    index: true,
-    uniqueCaseInsensitive: true
+    required: true
   },
-  email: {
-    type: String,
-    match: [/\S+@\S+\.\S+/, 'is invalid'],
-    required: true,
-    unique: true,
-    index: true,
-    uniqueCaseInsensitive: true
-  },
-  hash: String,
-  salt: String,
+  subtitle: String,
+  duration: Number,
+  media: String,
 }, { timestamps: true });
 
 /**
@@ -34,26 +22,17 @@ const UserSchema = new mongoose.Schema({
  * - validations
  * - virtuals
  */
-UserSchema.plugin(uniqueValidator, { message: 'is already taken.' });
 
 /**
  * Methods
  */
-UserSchema.method({
-  isValidPassword(password) {
-    const hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-    return this.hash === hash;
-  },
-  setPassword(password) {
-    this.salt = crypto.randomBytes(16).toString('hex');
-    this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-  }
+EpisodeSchema.method({
 });
 
 /**
  * Statics
  */
-UserSchema.statics = {
+EpisodeSchema.statics = {
   /**
    * Get user
    * @param {ObjectId} id - The objectId of user.
@@ -89,4 +68,4 @@ UserSchema.statics = {
 /**
  * @typedef User
  */
-export default mongoose.model('User', UserSchema);
+export default mongoose.model('User', EpisodeSchema);

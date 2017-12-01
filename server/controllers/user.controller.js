@@ -27,10 +27,12 @@ function get(req, res) {
  * @returns {User}
  */
 function create(req, res, next) {
+  const { username, email, password } = req.body
   const user = new User({
-    username: req.body.username,
-    mobileNumber: req.body.mobileNumber
+    username,
+    email
   });
+  user.setPassword(password);
 
   user.save()
     .then(savedUser => res.json(savedUser))
@@ -40,13 +42,14 @@ function create(req, res, next) {
 /**
  * Update existing user
  * @property {string} req.body.username - The username of user.
- * @property {string} req.body.mobileNumber - The mobileNumber of user.
+ * @property {string} req.body.password - The password of user.
  * @returns {User}
  */
 function update(req, res, next) {
   const user = req.user;
   user.username = req.body.username;
-  user.mobileNumber = req.body.mobileNumber;
+  if (req.body.password)
+    user.setPassword(req.body.password);
 
   user.save()
     .then(savedUser => res.json(savedUser))

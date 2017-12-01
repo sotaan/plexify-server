@@ -1,31 +1,21 @@
 import Promise from 'bluebird';
 import mongoose from 'mongoose';
-import crypto from 'crypto';
-import uniqueValidator from 'mongoose-unique-validator';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 
 /**
  * User Schema
  */
-const UserSchema = new mongoose.Schema({
-  username: {
+const SeasonSchema = new mongoose.Schema({
+  episodes: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'Episode'
+  }],
+  crawlingSrc: {
     type: String,
     required: true,
-    unique: true,
-    index: true,
-    uniqueCaseInsensitive: true
-  },
-  email: {
-    type: String,
-    match: [/\S+@\S+\.\S+/, 'is invalid'],
-    required: true,
-    unique: true,
-    index: true,
-    uniqueCaseInsensitive: true
-  },
-  hash: String,
-  salt: String,
+    unique: true
+  }
 }, { timestamps: true });
 
 /**
@@ -34,30 +24,21 @@ const UserSchema = new mongoose.Schema({
  * - validations
  * - virtuals
  */
-UserSchema.plugin(uniqueValidator, { message: 'is already taken.' });
 
 /**
  * Methods
  */
-UserSchema.method({
-  isValidPassword(password) {
-    const hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-    return this.hash === hash;
-  },
-  setPassword(password) {
-    this.salt = crypto.randomBytes(16).toString('hex');
-    this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-  }
+SeasonSchema.method({
 });
 
 /**
  * Statics
  */
-UserSchema.statics = {
+SeasonSchema.statics = {
   /**
    * Get user
    * @param {ObjectId} id - The objectId of user.
-   * @returns {Promise<User>, APIError>}
+   * @returns {Promise<Season>, APIError>}
    */
   get(id) {
     return this.findById(id)
@@ -75,7 +56,7 @@ UserSchema.statics = {
    * List users in descending order of 'createdAt' timestamp.
    * @param {number} skip - Number of users to be skipped.
    * @param {number} limit - Limit number of users to be returned.
-   * @returns {Promise<User[]>}
+   * @returns {Promise<Season[]>}
    */
   list({ skip = 0, limit = 50 } = {}) {
     return this.find()
@@ -87,6 +68,6 @@ UserSchema.statics = {
 };
 
 /**
- * @typedef User
+ * @typedef Season
  */
-export default mongoose.model('User', UserSchema);
+export default mongoose.model('Season', SeasonSchema);
