@@ -4,7 +4,6 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import compress from 'compression';
 import methodOverride from 'method-override';
-//import passport from "passport";
 import cors from 'cors';
 import httpStatus from 'http-status';
 import expressWinston from 'express-winston';

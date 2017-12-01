@@ -1,23 +1,23 @@
 import jwt from 'jsonwebtoken';
+import passport from 'passport';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import config from '../../config/config';
-import passport from "passport";
 
 
 const generateJWT = (user) => {
   const today = new Date();
   let exp = new Date(today);
   exp.setDate(today.getDate() + 60);
-  exp = parseInt(exp.getTime() / 1000)
+  exp = Number(exp.getTime() / 1000);
 
   return jwt.sign({
     username: user.username,
     exp
   }, config.jwtSecret);
-}
+};
 
-const makeAuthError = (err) => new APIError(err, httpStatus.UNAUTHORIZED, true);
+const makeAuthError = err => new APIError(err, httpStatus.UNAUTHORIZED, true);
 
 /**
  * Returns jwt token if valid username and password is provided
@@ -27,7 +27,7 @@ const makeAuthError = (err) => new APIError(err, httpStatus.UNAUTHORIZED, true);
  * @returns {*}
  */
 const login = (req, res, next) => {
-  passport.authenticate('local', { session: false }, function (err, user, info) {
+  passport.authenticate('local', { session: false }, (err, user, info) => {
     if (err) { return next(makeAuthError(err)); }
 
     if (user) {
@@ -36,11 +36,11 @@ const login = (req, res, next) => {
         token,
         username: user.username
       });
-    } else {
-      return next(makeAuthError('Authentication error: ' + info));
     }
+
+    return next(makeAuthError(`Authentication error:  ${info}`));
   })(req, res, next);
-}
+};
 
 /**
  * This is a protected route. Will return random number only if jwt token is provided in header.
@@ -48,12 +48,10 @@ const login = (req, res, next) => {
  * @param res
  * @returns {*}
  */
-const getRandomNumber = (req, res) => {
-  // req.user is assigned by jwt middleware if valid token is provided
-  return res.json({
-    user: req.user,
-    num: Math.random() * 100
-  });
-}
+// req.user is assigned by jwt middleware if valid token is provided
+const getRandomNumber = (req, res) => res.json({
+  user: req.user,
+  num: Math.random() * 100
+});
 
 export default { login, getRandomNumber, generateJWT };
